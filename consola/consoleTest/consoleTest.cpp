@@ -18,6 +18,17 @@
 
 int main(void) 
 {
+#ifdef _WIN32
+  //! Windows netword DLL init
+  WORD version = MAKEWORD(2, 2);
+  WSADATA data;
+
+  if (WSAStartup(version, &data) != 0) {
+    std::cerr << "WSAStartup() failure" << std::endl;
+    return -1;
+  }
+#endif 
+
 
 	//! Enable logging
 	cpp_redis::active_logger = std::unique_ptr<cpp_redis::logger>(new cpp_redis::logger);
@@ -28,7 +39,7 @@ int main(void)
 	
 
 	//! Add your sentinels by IP/Host & Port
-	client.add_sentinel("127.0.0.1", 26379);
+	client.add_sentinel("192.168.1.106", 26379);
 	//client.add_sentinel("192.168.1.106", 26379, 5000);
 	
 	volatile bool bconnected = false;
@@ -121,6 +132,12 @@ int main(void)
 		std::cout << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 	}
+
+
+	#ifdef _WIN32
+        WSACleanup();
+	#endif 
+	
 	return 0;
 }
 
