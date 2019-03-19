@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp_redis", "cpp_redis.vcxp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tacopie", "..\tacopie\msvc15\tacopie.vcxproj", "{5DC28D31-04A5-4509-8EE3-CF16DE77475B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "consoleTest", "..\consola\consoleTest\consoleTest.vcxproj", "{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,8 +36,19 @@ Global
 		{5DC28D31-04A5-4509-8EE3-CF16DE77475B}.Release|x64.Build.0 = Release|x64
 		{5DC28D31-04A5-4509-8EE3-CF16DE77475B}.Release|x86.ActiveCfg = Release|Win32
 		{5DC28D31-04A5-4509-8EE3-CF16DE77475B}.Release|x86.Build.0 = Release|Win32
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Debug|x64.ActiveCfg = Debug|x64
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Debug|x64.Build.0 = Debug|x64
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Debug|x86.ActiveCfg = Debug|Win32
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Debug|x86.Build.0 = Debug|Win32
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Release|x64.ActiveCfg = Release|x64
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Release|x64.Build.0 = Release|x64
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Release|x86.ActiveCfg = Release|Win32
+		{0A4E6D6C-6575-48E2-BC4B-47E7F83BBB2E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D98FE048-4C69-4987-8BC9-791C85A70124}
 	EndGlobalSection
 EndGlobal
