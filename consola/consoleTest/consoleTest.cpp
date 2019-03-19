@@ -39,7 +39,7 @@ int main(void)
 	
 
 	//! Add your sentinels by IP/Host & Port
-	client.add_sentinel("192.168.1.106", 26379);
+	client.add_sentinel("127.0.0.1", 26379);
 	//client.add_sentinel("192.168.1.106", 26379, 5000);
 	
 	volatile bool bconnected = false;
@@ -47,7 +47,7 @@ int main(void)
 	//! Call connect with optional timeout
 	//! Can put a loop around this until is_connected() returns true.
 	
-	while( !bconnected)
+/*	if( !bconnected)
 	{
 	
 		try
@@ -67,7 +67,7 @@ int main(void)
 							std::cout << "Connection status [" << (int)status << "] host [" << host << "] Post [" << port << "]" << std::endl;
 						}
 					},
-					3000, 100, 3000
+					300, 1, 300
 			);
 			
 			client.sync_commit();
@@ -79,54 +79,87 @@ int main(void)
 		
 		std::cout << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));		
-	}
+	}*/
 	
 
 	// same as client.send({ "SET", "hello", "42" }, ...)
-	client.set (
-		"hello", "42", 
-		[](cpp_redis::reply& reply) 
-		{
-			std::cout << "set hello 42: " << reply << std::endl;
-			// if (reply.is_string())
-			//   do_something_with_string(reply.as_string())
-		}
-	);
+
 
 	while (true) 
 	{
 		
 		if(bconnected)
 		{
-	
-			// same as client.send({ "DECRBY", "hello", 12 }, ...)
-			client.incrby(
+			try
+			{
+		
+				// same as client.send({ "DECRBY", "hello", 12 }, ...)
+				client.incrby(
+						"hello", 
+						12, 
+						[](cpp_redis::reply& reply) 
+						{
+							std::cout << "incrby hello 12: " << reply << std::endl;
+							// if (reply.is_integer())
+							//   do_something_with_integer(reply.as_integer())
+						}
+				);
+
+				// same as client.send({ "GET", "hello" }, ...)
+				client.get(
 					"hello", 
-					12, 
 					[](cpp_redis::reply& reply) 
 					{
-						std::cout << "incrby hello 12: " << reply << std::endl;
-						// if (reply.is_integer())
-						//   do_something_with_integer(reply.as_integer())
+						std::cout << "get hello: " << reply << std::endl;
+						// if (reply.is_string())
+						//   do_something_with_string(reply.as_string())
 					}
-			);
+				);
 
-			// same as client.send({ "GET", "hello" }, ...)
-			client.get(
-				"hello", 
-				[](cpp_redis::reply& reply) 
-				{
-					std::cout << "get hello: " << reply << std::endl;
-					// if (reply.is_string())
-					//   do_something_with_string(reply.as_string())
-				}
-			);
+				// commands are pipelined and only sent when client.commit() is called
+				// client.commit();
 
-			// commands are pipelined and only sent when client.commit() is called
-			// client.commit();
-
-			// synchronous commit, no timeout
-			client.sync_commit();
+				// synchronous commit, no timeout
+				client.sync_commit();
+				
+			}
+			catch( std::exception &e)
+			{
+				std::cout  << "Exceptrion: " << e.what() << std::endl;
+				client.disconnect();
+				bconnected = false;
+			}
+		}
+		else
+		{
+			try
+			{
+				client.connect(
+						std::string("mymaster"), 
+						[&bconnected](const std::string& host, std::size_t port, cpp_redis::connect_state status) 
+						{
+							if (status == cpp_redis::connect_state::dropped) 
+							{
+								bconnected = false;
+								std::cout << "client disconnected from " << host << ":" << port << std::endl;
+							}
+							else
+							{
+								bconnected = true;
+								std::cout << "Connection status [" << (int)status << "] host [" << host << "] Post [" << port << "]" << std::endl;
+							}
+						},
+						1000, 0, 0
+				);
+				
+				client.sync_commit();
+			}
+			catch(std::exception& e)
+			{
+				client.disconnect();
+				bconnected = false;
+				std::cout << "Exception:" << e.what() << std::endl;
+			}			
 		}
 		
 		std::cout << std::endl;
