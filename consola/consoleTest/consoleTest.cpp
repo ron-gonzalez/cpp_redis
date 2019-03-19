@@ -3,9 +3,9 @@
 
 #include "pch.h"
 #include <cpp_redis/cpp_redis>
+/*#include <cpp_redis/core/types.hpp>
 #include <cpp_redis/misc/macro.hpp>
-#include <Winsock2.h>
-#include <condition_variable>
+#include <condition_variable>*/
 #include <iostream>
 #include <mutex>
 #include <signal.h>
@@ -13,7 +13,120 @@
 #include <tacopie/tacopie>
 
 // #define ENABLE_SESSION = 1
-using namespace std;
+//using namespace std;
+
+
+int main(void) 
+{
+
+	//! Enable logging
+	cpp_redis::active_logger = std::unique_ptr<cpp_redis::logger>(new cpp_redis::logger);
+	cpp_redis::client client;
+
+	//! High availability requires at least 2 io service workers
+	cpp_redis::network::set_default_nb_workers(2);
+	
+
+	//! Add your sentinels by IP/Host & Port
+	client.add_sentinel("127.0.0.1", 26379);
+	//client.add_sentinel("192.168.1.106", 26379, 5000);
+	
+	volatile bool bconnected = false;
+
+	//! Call connect with optional timeout
+	//! Can put a loop around this until is_connected() returns true.
+	
+	while( !bconnected)
+	{
+	
+		try
+		{
+			client.connect(
+					std::string("mymaster"), 
+					[&bconnected](const std::string& host, std::size_t port, cpp_redis::connect_state status) 
+					{
+						if (status == cpp_redis::connect_state::dropped) 
+						{
+							bconnected = false;
+							std::cout << "client disconnected from " << host << ":" << port << std::endl;
+						}
+						else
+						{
+							bconnected = true;
+							std::cout << "Connection status [" << (int)status << "] host [" << host << "] Post [" << port << "]" << std::endl;
+						}
+					},
+					3000, 100, 3000
+			);
+			
+			client.sync_commit();
+		}
+		catch(std::exception& e)
+		{
+			std::cout << "Exception:" << e.what() << std::endl;
+		}
+		
+		std::cout << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(3000));		
+	}
+	
+
+	// same as client.send({ "SET", "hello", "42" }, ...)
+	client.set (
+		"hello", "42", 
+		[](cpp_redis::reply& reply) 
+		{
+			std::cout << "set hello 42: " << reply << std::endl;
+			// if (reply.is_string())
+			//   do_something_with_string(reply.as_string())
+		}
+	);
+
+	while (true) 
+	{
+		
+		if(bconnected)
+		{
+	
+			// same as client.send({ "DECRBY", "hello", 12 }, ...)
+			client.incrby(
+					"hello", 
+					12, 
+					[](cpp_redis::reply& reply) 
+					{
+						std::cout << "incrby hello 12: " << reply << std::endl;
+						// if (reply.is_integer())
+						//   do_something_with_integer(reply.as_integer())
+					}
+			);
+
+			// same as client.send({ "GET", "hello" }, ...)
+			client.get(
+				"hello", 
+				[](cpp_redis::reply& reply) 
+				{
+					std::cout << "get hello: " << reply << std::endl;
+					// if (reply.is_string())
+					//   do_something_with_string(reply.as_string())
+				}
+			);
+
+			// commands are pipelined and only sent when client.commit() is called
+			// client.commit();
+
+			// synchronous commit, no timeout
+			client.sync_commit();
+		}
+		
+		std::cout << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+	}
+	return 0;
+}
+
+
+
+
 
 
 /*
@@ -194,11 +307,11 @@ main() {
 }
   */
 
-
+/*
 // test normal usage 2 reconnection
 int
 main() {
-
+#ifdef _WIN32
   //! Windows netword DLL init
   WORD version = MAKEWORD(2, 2);
   WSADATA data;
@@ -207,13 +320,13 @@ main() {
     std::cerr << "WSAStartup() failure" << std::endl;
     return -1;
   }
-
+#endif
 
   //! Enable logging
   cpp_redis::active_logger = std::unique_ptr<cpp_redis::logger>(new cpp_redis::logger);
   cpp_redis::client client;
 
-  client.connect("127.0.0.1", 6379,
+  client.connect("192.168.1.106", 6379,
     [&client](const std::string& host, std::size_t port, cpp_redis::connect_state status) {
       if (status == cpp_redis::connect_state::dropped) {
         std::cout << "client disconnected from " << host << ":" << port << std::endl;
@@ -265,4 +378,4 @@ main() {
 
   cout << "End!" << endl;
   return 0;
-}
+}*/
